@@ -18,7 +18,7 @@ describe('effect', () => {
     expect(nextAge).toBe(12)
   })
 
-  it("should return runer when call effect", () => {
+  it("should return runner when call effect", () => {
     let foo = 10
     const runner = effect(() => {
       foo++
@@ -49,6 +49,7 @@ describe('effect', () => {
     expect(scheduler).not.toHaveBeenCalled()
     expect(dummy).toBe(1)
     obj.foo++
+    // 当响应式对象里的值变化时 执行的是scheduler 而不是执行fn
     expect(scheduler).toHaveBeenCalledTimes(1)
     expect(dummy).toBe(1)
     run()
@@ -56,6 +57,7 @@ describe('effect', () => {
   })
 
   it("stop", () => {
+    // stop的目的就是阻止在响应式对象里的值变化时 调用对应的依赖函数 此时需要自己手动调用响应式函数
     let dummy
     const obj = reactive({ prop: 1 })
     const runner = effect(() => {

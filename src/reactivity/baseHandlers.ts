@@ -1,4 +1,5 @@
 import { track, trigger } from './effect'
+import { ReactiveFlags } from './reactive'
 
 const get = createGetter()
 const set = createSetter()
@@ -7,6 +8,12 @@ const readonlyGet = createGetter(true)
 // 对创建代理对象时的get操作进行封装
 function createGetter(isReadonly = false) {
   return function get(target, key) {
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadonly
+    } else if(key === ReactiveFlags.IS_READONLY) {
+      return isReadonly
+    }
+
     const res = Reflect.get(target, key)
     if (!isReadonly) {
       // 收集依赖
@@ -32,7 +39,7 @@ export const mutableHandlers = {
 }
 
 export const readonlyHandlers = {
-  get:readonlyGet,
+  get: readonlyGet,
   set(target, key, value) {
     console.warn("设置属性失败，因为当前对象是只读的")
     return true

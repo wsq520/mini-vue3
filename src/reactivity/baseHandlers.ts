@@ -1,14 +1,15 @@
 import { track, trigger } from './effect'
 import { reactive, ReactiveFlags, readonly } from './reactive'
-import { isObject } from '../shared'
+import { extend, isObject } from '../shared'
 
 // 优化：createGetter()、createSetter()函数只会在初始化时执行一个
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
+const shallowReadonlyGet = createGetter(true, true)
 
 // 对创建代理对象时的get操作进行封装
-function createGetter(isReadonly = false) {
+function createGetter(isReadonly = false, shallow = false) {
   return function get(target, key) {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly
@@ -17,6 +18,10 @@ function createGetter(isReadonly = false) {
     }
 
     const res = Reflect.get(target, key)
+
+    if(shallow) {
+      return res
+    }
 
     if (isObject(res)) {
       return isReadonly ? readonly(res) : reactive(res)
@@ -52,3 +57,7 @@ export const readonlyHandlers = {
     return true
   }
 }
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shallowReadonlyGet
+})

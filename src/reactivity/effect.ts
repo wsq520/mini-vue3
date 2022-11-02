@@ -1,5 +1,8 @@
 import { extend } from '../shared'
 
+let activeEffect//记录当前传入需要被收集的fn
+let shouldTrack//记录此时是否应该去触发收集依赖
+
 class ReactiveEffect {
   private _fn: any
   deps = []
@@ -12,8 +15,16 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      return this._fn()
+    }
+
+    shouldTrack = true
     activeEffect = this
-    return this._fn()
+
+    const res = this._fn()
+    shouldTrack = false
+    return res
   }
 
   stop() {
@@ -35,6 +46,8 @@ function cleanupEffect(effect) {
 
 const targetMap = new Map()
 export function track(target, key) {
+  if (!isTracking()) return
+
   // 1. 先拿到某个对象的依赖Map
   let depsMap = targetMap.get(target)
   if (!depsMap) {
@@ -48,10 +61,13 @@ export function track(target, key) {
     depsMap.set(key, dep)
   }
 
-  if (!activeEffect) return
-
+  if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   activeEffect.deps.push(dep)
+}
+
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined
 }
 
 export function trigger(target, key) {
@@ -66,7 +82,6 @@ export function trigger(target, key) {
   }
 }
 
-let activeEffect
 export function effect(fn, options: any = {}) {
   const _effect = new ReactiveEffect(fn, options.scheduler)
   // _effect.onStop = options.onStop

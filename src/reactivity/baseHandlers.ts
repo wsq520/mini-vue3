@@ -1,6 +1,8 @@
 import { track, trigger } from './effect'
-import { ReactiveFlags } from './reactive'
+import { reactive, ReactiveFlags, readonly } from './reactive'
+import { isObject } from '../shared'
 
+// 优化：createGetter()、createSetter()函数只会在初始化时执行一个
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
@@ -10,11 +12,16 @@ function createGetter(isReadonly = false) {
   return function get(target, key) {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly
-    } else if(key === ReactiveFlags.IS_READONLY) {
+    } else if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly
     }
 
     const res = Reflect.get(target, key)
+
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res)
+    }
+
     if (!isReadonly) {
       // 收集依赖
       track(target, key)

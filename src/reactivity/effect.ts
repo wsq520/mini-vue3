@@ -3,7 +3,7 @@ import { extend } from '../shared'
 let activeEffect//记录当前传入需要被收集的fn
 let shouldTrack//记录此时是否应该去触发收集依赖
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any
   deps = []
   active = true

@@ -5,7 +5,7 @@ export const App = {
     return h("div", {
       id: "root",
       class: ["red", "hard"]
-    }, "hello mini-vue")
+    }, "hello" + this.msg)
   },
   setup() {
     return {

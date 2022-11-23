@@ -4,8 +4,8 @@ import { isObject } from "../shared/index"
 export function render(vnode, container) {
   patch(vnode, container)
 }
- 
-function patch(vnode, container) { 
+
+function patch(vnode, container) {
   console.log(vnode.type)
   // 判断节点是一个element还是一个组件
   if (typeof vnode.type === "string") {
@@ -17,11 +17,11 @@ function patch(vnode, container) {
 
 function processElement(vnode: any, container: any) {
   // 初始化
-  mountElement(vnode, container )
+  mountElement(vnode, container)
 }
 
 function mountElement(vnode: any, container: any) {
-  const el = document.createElement(vnode.type)
+  const el = (vnode.el = document.createElement(vnode.type))
 
   const { children } = vnode
   el.textContent = children
@@ -34,23 +34,25 @@ function mountElement(vnode: any, container: any) {
 
   container.append(el)
   console.log(container)
-  
+
 }
 
 function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container)
 }
 
-function mountComponent(vnode: any, container: any) {
-  const instance = createComponentInstance(vnode)
+function mountComponent(initialVNode: any, container: any) {
+  const instance = createComponentInstance(initialVNode)
 
   setupComponent(instance)
-  setupRenderEffect(instance, container)
+  setupRenderEffect(instance, initialVNode, container)
 }
 
-function setupRenderEffect(instance: any, container:any) {
+function setupRenderEffect(instance: any, initialVNode: any, container: any) {
   const { proxy } = instance
   const subTree = instance.render.call(proxy)
 
   patch(subTree, container)
+
+  initialVNode.el = subTree.el
 }
